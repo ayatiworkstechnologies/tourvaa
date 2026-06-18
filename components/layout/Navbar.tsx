@@ -1,28 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { Menu, Search, User, X } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useRouter } from "next/navigation";
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+const NAV_LINKS = [
+  { name: "Destinations", href: "/destinations" },
+  { name: "Tours", href: "/tours" },
+  { name: "About Us", href: "/about" },
+  { name: "Contact", href: "/contact" },
+];
+
 export default function Navbar() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const pathname = usePathname();
+  const router = useRouter();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    if (latest > 50) {
-      setIsScrolled(true);
-    } else {
-      setIsScrolled(false);
-    }
+    setIsScrolled(latest > 50);
   });
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    setShowSearch(false);
+    setSearchQuery("");
+    router.push(q ? `/tours?q=${encodeURIComponent(q)}` : "/tours");
+  }
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <motion.header
@@ -49,30 +69,61 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          {[
-            { name: "Destinations", href: "/destinations" },
-            { name: "Tours", href: "/tours" },
-            { name: "About Us", href: "/about" },
-            { name: "Contact", href: "/contact" },
-          ].map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "text-sm font-medium hover:opacity-70 transition-opacity",
-                isScrolled ? "text-[#64748B] hover:text-[#0EA5E9] dark:text-gray-300" : "text-white/90 hover:text-white"
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {NAV_LINKS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "relative text-sm font-medium transition-all pb-0.5",
+                  isScrolled
+                    ? active
+                      ? "text-[#0EA5E9] dark:text-[#38BDF8]"
+                      : "text-[#64748B] hover:text-[#0EA5E9] dark:text-gray-300 dark:hover:text-[#38BDF8]"
+                    : active
+                      ? "text-white font-bold"
+                      : "text-white/80 hover:text-white"
+                )}
+              >
+                {item.name}
+                {active && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0EA5E9] rounded-full"
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center gap-4">
-          <button className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}>
-            <Search size={20} />
-          </button>
+        <div className="hidden md:flex items-center gap-3">
+          {showSearch ? (
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tours…"
+                className="border border-gray-200 dark:border-white/20 bg-white/90 dark:bg-[#1E293B] rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#0EA5E9] w-44 text-[#0F172A] dark:text-white"
+              />
+              <button type="button" aria-label="Close search" onClick={() => { setShowSearch(false); setSearchQuery(""); }} className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}>
+                <X size={18} />
+              </button>
+            </form>
+          ) : (
+            <button
+              type="button"
+              aria-label="Open search"
+              onClick={() => setShowSearch(true)}
+              className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}
+            >
+              <Search size={20} />
+            </button>
+          )}
           <Link
             href="/login"
             className={cn(
@@ -89,6 +140,8 @@ export default function Navbar() {
 
         {/* Mobile Menu Toggle */}
         <button
+          type="button"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           className={cn("md:hidden p-2", isScrolled ? "text-black dark:text-white" : "text-white")}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
@@ -104,22 +157,31 @@ export default function Navbar() {
           exit={{ opacity: 0, y: -20 }}
           className="absolute top-full left-0 right-0 bg-white dark:bg-[#0B1120] shadow-xl border-b dark:border-white/10 md:hidden flex flex-col p-6 gap-4"
         >
-          {["Destinations", "Tours", "About Us", "Contact"].map((item) => (
-            <Link
-              key={item}
-              href={`/${item.toLowerCase().replace(" ", "-")}`}
-              className="text-lg font-semibold text-[#0F172A] dark:text-white hover:text-[#0EA5E9]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {item}
-            </Link>
-          ))}
+          {NAV_LINKS.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "text-lg font-semibold transition-colors",
+                  active
+                    ? "text-[#0EA5E9]"
+                    : "text-[#0F172A] dark:text-white hover:text-[#0EA5E9]"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
           <hr className="my-2 border-gray-100 dark:border-white/10" />
           <Link
             href="/login"
             className="flex items-center justify-center gap-2 bg-[#0EA5E9] text-white py-3 rounded-xl font-bold"
+            onClick={() => setMobileMenuOpen(false)}
           >
-            Sign In
+            <User size={18} /> Sign In
           </Link>
         </motion.div>
       )}
