@@ -1,11 +1,26 @@
-import HomePage from "@/components/home/HomePage";
-import { fetchTours } from "@/lib/api";
+import React from "react";
+import { HeroBanner } from "@/components/home/HeroBanner";
+import { PopularDestinations } from "@/components/home/PopularDestinations";
+import { FeaturedTours } from "@/components/home/FeaturedTours";
+import { ToursOnDeals } from "@/components/home/ToursOnDeals";
+import { WhyChooseUs } from "@/components/home/WhyChooseUs";
+import { CustomerReviews } from "@/components/home/CustomerReviews";
+import { BlogPreview } from "@/components/home/BlogPreview";
+import { PartnerCTAs } from "@/components/home/PartnerCTAs";
+import { HelpCentrePreview } from "@/components/home/HelpCentrePreview";
 
-export default async function Home() {
-  // Fetch up to 3 tours for the popular tours section on the landing page
-  const popularTours = await fetchTours({ limit: "3" });
-
+export default function HomePage() {
   return (
-    <HomePage popularTours={popularTours} />
+    <div className="flex flex-col min-h-screen">
+      <HeroBanner />
+      <WhyChooseUs />
+      <PopularDestinations />
+      <FeaturedTours />
+      <ToursOnDeals />
+      <CustomerReviews />
+      <BlogPreview />
+      <PartnerCTAs />
+      <HelpCentrePreview />
+    </div>
   );
 }

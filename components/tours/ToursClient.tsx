@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import TourCard from "@/components/tours/TourCard";
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,10 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [maxPrice, setMaxPrice] = useState<number>(9999);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   // Sync search with URL param changes
   useEffect(() => {
@@ -51,6 +55,7 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
       next.has(cat) ? next.delete(cat) : next.add(cat);
       return next;
     });
+    setCurrentPage(1); // Reset pagination on filter
   };
 
   const clearFilters = () => {
@@ -58,6 +63,7 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
     setSortBy("recommended");
     setSelectedCategories(new Set());
     setMaxPrice(priceMax);
+    setCurrentPage(1);
   };
 
   const activeFilterCount =
@@ -103,7 +109,14 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
     return result;
   }, [initialTours, search, selectedCategories, maxPrice, sortBy]);
 
-  const FilterPanel = () => (
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredAndSorted.length / itemsPerPage);
+  const paginatedTours = filteredAndSorted.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const filterPanelContent = (
     <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-white/5 space-y-7">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-lg text-[#0F172A] dark:text-white">
@@ -134,12 +147,15 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search tours, destinations…"
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#0B1120] outline-none focus:border-[#0EA5E9] transition-colors text-sm"
           />
           {search && (
-            <button type="button" aria-label="Clear search" onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button type="button" aria-label="Clear search" onClick={() => { setSearch(""); setCurrentPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               <X size={14} />
             </button>
           )}
@@ -159,7 +175,10 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
           max={priceMax}
           step={50}
           value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          onChange={(e) => {
+            setMaxPrice(Number(e.target.value));
+            setCurrentPage(1);
+          }}
           className="w-full accent-[#0EA5E9] cursor-pointer"
         />
         <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -218,16 +237,18 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
         <button
           type="button"
           onClick={() => setShowMobileFilters(!showMobileFilters)}
-          className="lg:hidden flex items-center gap-2 mb-5 bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-white/10 px-4 py-2.5 rounded-xl font-semibold text-sm text-[#0F172A] dark:text-white shadow-sm"
+          className="lg:hidden flex items-center gap-2 mb-5 bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-white/10 px-4 py-2.5 rounded-xl font-semibold text-sm text-[#0F172A] dark:text-white shadow-sm w-full justify-between"
         >
-          <SlidersHorizontal size={16} className="text-[#0EA5E9]" />
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="bg-[#0EA5E9] text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-          <ChevronDown size={16} className={`ml-auto transition-transform ${showMobileFilters ? "rotate-180" : ""}`} />
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={16} className="text-[#0EA5E9]" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-[#0EA5E9] text-white text-xs font-black w-5 h-5 rounded-full flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </div>
+          <ChevronDown size={16} className={`transition-transform ${showMobileFilters ? "rotate-180" : ""}`} />
         </button>
 
         {/* Mobile filters */}
@@ -237,7 +258,7 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 lg:hidden"
           >
-            <FilterPanel />
+            {filterPanelContent}
           </motion.div>
         )}
 
@@ -245,7 +266,7 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-72 shrink-0">
             <div className="sticky top-28">
-              <FilterPanel />
+              {filterPanelContent}
             </div>
           </aside>
 
@@ -265,8 +286,8 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
                   <div className="flex flex-wrap gap-2 mt-2">
                     {search && (
                       <span className="inline-flex items-center gap-1 bg-[#E0F2FE] dark:bg-[#0EA5E9]/20 text-[#0EA5E9] text-xs font-bold px-3 py-1 rounded-full">
-                        "{search}"
-                        <button type="button" aria-label={`Remove search filter: ${search}`} onClick={() => setSearch("")}><X size={12} /></button>
+                        &quot;{search}&quot;
+                        <button type="button" aria-label={`Remove search filter: ${search}`} onClick={() => { setSearch(""); setCurrentPage(1); }}><X size={12} /></button>
                       </span>
                     )}
                     {Array.from(selectedCategories).map((cat) => (
@@ -282,7 +303,10 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
               <select
                 aria-label="Sort tours"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                onChange={(e) => {
+                  setSortBy(e.target.value as SortOption);
+                  setCurrentPage(1);
+                }}
                 className="border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 bg-white dark:bg-[#1E293B] outline-none text-sm font-medium focus:border-[#0EA5E9] transition-colors cursor-pointer"
               >
                 <option value="recommended">Recommended</option>
@@ -294,11 +318,50 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
             </div>
 
             {filteredAndSorted.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredAndSorted.map((tour, index) => (
-                  <TourCard key={tour.id} tour={tour} index={index} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {paginatedTours.map((tour, index) => (
+                    <TourCard key={tour.id} tour={tour} index={index} />
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-lg border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                          currentPage === i + 1 
+                            ? 'bg-[#0EA5E9] text-white' 
+                            : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-lg border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -310,7 +373,7 @@ export default function ToursClient({ initialTours }: { initialTours: Tour[] }) 
                 </div>
                 <h3 className="text-xl font-bold mb-2 text-[#0F172A] dark:text-white">No tours found</h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  We couldn't find tours matching your current filters.
+                  We couldn&apos;t find tours matching your current filters.
                 </p>
                 <button
                   type="button"

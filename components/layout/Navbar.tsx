@@ -16,6 +16,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 const NAV_LINKS = [
   { name: "Destinations", href: "/destinations" },
   { name: "Tours", href: "/tours" },
+  { name: "FAQ", href: "/faq" },
   { name: "About Us", href: "/about" },
   { name: "Contact", href: "/contact" },
 ];
@@ -59,10 +60,10 @@ export default function Navbar() {
       <div className="container mx-auto px-6 max-w-7xl flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0284C7] flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-105 transition-transform">
             T
           </div>
-          <span className={cn("text-2xl font-bold tracking-tight", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}>
+          <span className={cn("text-2xl font-bold tracking-tight", isScrolled ? "text-text dark:text-white" : "text-white")}>
             Tourvaa
           </span>
         </Link>
@@ -79,8 +80,8 @@ export default function Navbar() {
                   "relative text-sm font-medium transition-all pb-0.5",
                   isScrolled
                     ? active
-                      ? "text-[#0EA5E9] dark:text-[#38BDF8]"
-                      : "text-[#64748B] hover:text-[#0EA5E9] dark:text-gray-300 dark:hover:text-[#38BDF8]"
+                      ? "text-primary dark:text-[#38BDF8]"
+                      : "text-text-muted hover:text-primary dark:text-gray-300 dark:hover:text-[#38BDF8]"
                     : active
                       ? "text-white font-bold"
                       : "text-white/80 hover:text-white"
@@ -90,7 +91,7 @@ export default function Navbar() {
                 {active && (
                   <motion.span
                     layoutId="nav-underline"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#0EA5E9] rounded-full"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
                   />
                 )}
               </Link>
@@ -108,9 +109,14 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tours…"
-                className="border border-gray-200 dark:border-white/20 bg-white/90 dark:bg-[#1E293B] rounded-full px-4 py-1.5 text-sm outline-none focus:border-[#0EA5E9] w-44 text-[#0F172A] dark:text-white"
+                className="border border-gray-200 dark:border-white/20 bg-white/90 dark:bg-[#1E293B] rounded-full px-4 py-1.5 text-sm outline-none focus:border-primary w-44 text-text dark:text-white"
               />
-              <button type="button" aria-label="Close search" onClick={() => { setShowSearch(false); setSearchQuery(""); }} className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}>
+              <button
+                type="button"
+                aria-label="Close search"
+                onClick={() => { setShowSearch(false); setSearchQuery(""); }}
+                className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-text dark:text-white" : "text-white")}
+              >
                 <X size={18} />
               </button>
             </form>
@@ -119,7 +125,7 @@ export default function Navbar() {
               type="button"
               aria-label="Open search"
               onClick={() => setShowSearch(true)}
-              className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-[#0F172A] dark:text-white" : "text-white")}
+              className={cn("p-2 rounded-full hover:bg-black/5 transition-colors", isScrolled ? "text-text dark:text-white" : "text-white")}
             >
               <Search size={20} />
             </button>
@@ -129,8 +135,8 @@ export default function Navbar() {
             className={cn(
               "flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all shadow-sm hover:shadow-md",
               isScrolled
-                ? "bg-[#0F172A] text-white hover:bg-[#1E293B] dark:bg-white dark:text-black"
-                : "bg-white text-[#0F172A] hover:bg-gray-100"
+                ? "bg-text text-white hover:bg-[#1E293B] dark:bg-white dark:text-black"
+                : "bg-white text-text hover:bg-gray-100"
             )}
           >
             <User size={16} />
@@ -166,8 +172,8 @@ export default function Navbar() {
                 className={cn(
                   "text-lg font-semibold transition-colors",
                   active
-                    ? "text-[#0EA5E9]"
-                    : "text-[#0F172A] dark:text-white hover:text-[#0EA5E9]"
+                    ? "text-primary"
+                    : "text-text dark:text-white hover:text-primary"
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -178,7 +184,7 @@ export default function Navbar() {
           <hr className="my-2 border-gray-100 dark:border-white/10" />
           <Link
             href="/login"
-            className="flex items-center justify-center gap-2 bg-[#0EA5E9] text-white py-3 rounded-xl font-bold"
+            className="flex items-center justify-center gap-2 bg-primary text-white py-3 rounded-xl font-bold"
             onClick={() => setMobileMenuOpen(false)}
           >
             <User size={18} /> Sign In
