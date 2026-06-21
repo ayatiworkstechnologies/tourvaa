@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ChatWidget from "@/components/chatbot/ChatWidget";
+import { ToastProvider } from "@/components/ui/ToastProvider";
+import WhatsAppButton from "@/components/ui/WhatsAppButton";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -24,12 +26,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`scroll-smooth ${outfit.variable}`}>
       <body className="antialiased min-h-screen flex flex-col font-sans">
-        <Navbar />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <ChatWidget />
+        <ToastProvider>
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+          <ChatWidget />
+          <WhatsAppButton />
+        </ToastProvider>
       </body>
     </html>
   );
